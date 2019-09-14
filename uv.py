@@ -4,7 +4,7 @@
 #
 # Licensed under the MIT license. See the LICENSE file.
 
-
+import argparse
 import os
 import socket
 import subprocess
@@ -150,11 +150,6 @@ def what_to_move(known_guests):
         guest = input("Which VM to move? ")
     else:
         guest = sys.argv[1]
-    if guest not in known_guests.keys():
-        print(f"NOPE: guest {guest} not known")
-        print("Known guests are")
-        print(known_guests.keys())
-        sys.exit(1)
     return guest
 
 
@@ -192,6 +187,30 @@ def offline_migration(qemu_conn, ssh_client, guest, logical_volumes_dict):
     subprocess.run(cmd)
 
 
+def parse_cli():
+    parser = argparse.ArgumentParser()
+    subparsers = parser.add_subparsers(
+        help="Type of action you want to do", dest="verb", required=True
+    )
+
+    parser_create = subparsers.add_parser("create", help="Create a new guest")
+    parser_create.add_argument("guest", help="Name of the guest")
+    parser_create.add_argument("--cpu", help="How many CPU", type=int, default=2)
+
+    parser_move = subparsers.add_parser("move", help="Move an existing guest")
+    parser_move.add_argument("guest", help="Name of the guest")
+    group = parser_move.add_mutually_exclusive_group(required=True)
+    group.add_argument("--live", action="store_true")
+    group.add_argument("--offline", action="store_true")
+
+    parser_delete = subparsers.add_parser("delete", help="Delete an existing guest")
+    parser_delete.add_argument("guest", help="Name of the guest")
+    parser_delete.add_argument(
+        "--yes", help="Don't ask for confirmation", action="store_true"
+    )
+    return parser.parse_args()
+
+
 def main():
     qemu_conn = libvirt.open("qemu:///system")
 
@@ -206,16 +225,21 @@ def main():
 
     # Find out which guests run on the kvm and get the user choice
     known_guests = inventary(qemu_conn)
-    guest = what_to_move(known_guests)
+    args = parse_cli()
+    if args.guest not in known_guests.keys():
+        print(f"NOPE: guest {args.guest} not known")
+        print("Known guests are")
+        print(known_guests.keys())
+        sys.exit(1)
 
     # Check all the lv exist on remote
-    for logical_volume_name, logical_volume_size in known_guests[guest].items():
+    for logical_volume_name, logical_volume_size in known_guests[args.guest].items():
         print(f"Checking {logical_volume_name} (size {logical_volume_size}B)")
         check_logical_volume_on_remote(
             ssh_client, logical_volume_name, logical_volume_size
         )
 
-    offline_migration(qemu_conn, ssh_client, guest, known_guests[guest])
+    offline_migration(qemu_conn, ssh_client, args.guest, known_guests[args.guest])
 
 
 if __name__ == "__main__":
