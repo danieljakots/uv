@@ -65,7 +65,9 @@ def check_logical_volume_on_remote(
             + f"-n{logical_volume_name.split('/')[-1]} ubuntu-vg"
         )
         print(lvcreate_cmd)
-        copy_remote_answer = input("Should I run this command on remote? (yes)\n")
+        copy_remote_answer = input(
+            "Should I run this command on remote? ('yes' to confirm)\n"
+        )
         if copy_remote_answer != "yes":
             sys.exit(1)
         else:
