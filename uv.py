@@ -241,14 +241,16 @@ def main():
     args = parse_cli()
     does_guest_exist(known_guests, args.guest)
 
-    # Check all the lv exist on remote
-    for logical_volume_name, logical_volume_size in known_guests[args.guest].items():
-        print(f"Checking {logical_volume_name} (size {logical_volume_size}B)")
-        check_logical_volume_on_remote(
-            ssh_client, logical_volume_name, logical_volume_size
-        )
+    if args.verb == "move":
+        # Check all the lv exist on remote
+        for logical_volume_name, logical_volume_size in known_guests[args.guest].items():
+            print(f"Checking {logical_volume_name} (size {logical_volume_size}B)")
+            check_logical_volume_on_remote(
+                ssh_client, logical_volume_name, logical_volume_size
+            )
 
-    offline_migration(qemu_conn, ssh_client, args.guest, known_guests[args.guest])
+        if args.offline:
+            offline_migration(qemu_conn, ssh_client, args.guest, known_guests[args.guest])
 
 
 if __name__ == "__main__":
