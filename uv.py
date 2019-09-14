@@ -275,7 +275,7 @@ def main():
             offline_migration(
                 qemu_conn, ssh_client, args.guest, known_guests[args.guest]
             )
-        if args.live:
+        elif args.live:
             live_migration(args.guest)
         if not args.disable_bell:
             # print a bell to notify the migration is done
