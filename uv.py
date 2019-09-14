@@ -272,7 +272,9 @@ def main():
             check_logical_volume_on_remote(ssh_client, lv_name, lv_size)
 
         if args.offline:
-            offline_migration(qemu_conn, ssh_client, args.guest, known_guests[args.guest])
+            offline_migration(
+                qemu_conn, ssh_client, args.guest, known_guests[args.guest]
+            )
         if args.live:
             live_migration(args.guest)
         if not args.disable_bell:
