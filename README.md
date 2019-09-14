@@ -29,6 +29,8 @@ optional arguments:
   -h, --help            show this help message and exit
 ```
 
+## Start a guest
+
 ```
 # ./uv.py start --help
 usage: uv.py start [-h] guest
@@ -39,6 +41,8 @@ positional arguments:
 optional arguments:
   -h, --help  show this help message and exit
 ```
+
+## Stop a guest
 
 ```
 # ./uv.py stop --help
@@ -51,6 +55,8 @@ optional arguments:
   -h, --help  show this help message and exit
 ```
 
+## Crash a guest
+
 ```
 # ./uv.py crash --help
 usage: uv.py crash [-h] guest
@@ -61,6 +67,8 @@ positional arguments:
 optional arguments:
   -h, --help  show this help message and exit
 ```
+
+## Move a guest
 
 ```
 # ./uv.py move --help
@@ -77,6 +85,8 @@ optional arguments:
                   migration is done
 ```
 
+## List guests
+
 ```
 # ./uv.py list --help
 usage: uv.py list [-h] [--on | --off | --vnc]
@@ -87,6 +97,8 @@ optional arguments:
   --off       List only guests powered off
   --vnc       Show VNC ports used by the guest
 ```
+
+## Delete a guest
 
 ```
 # ./uv.py delete --help
