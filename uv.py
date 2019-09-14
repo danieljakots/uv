@@ -249,10 +249,13 @@ def parse_cli():
     )
     parser_crash.add_argument("guest", help="Name of the guest")
 
-    parser_list = subparsers.add_parser("list", help="List existing guests")
+    parser_list = subparsers.add_parser("list", help="List all existing guests")
     group = parser_list.add_mutually_exclusive_group()
-    group.add_argument("--on", action="store_true")
-    group.add_argument("--off", action="store_true")
+    group.add_argument("--on", action="store_true", help="List only guests powered on")
+    group.add_argument(
+        "--off", action="store_true", help="List only guests powered off"
+    )
+
     group.add_argument(
         "--vnc", action="store_true", help="Show VNC ports used by the guest"
     )
