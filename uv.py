@@ -309,19 +309,19 @@ def main():
         if is_guest_running(qemu_conn, args.guest):
             print(f"NOPE: {args.guest} is already running")
             sys.exit(3)
-        start_guest()
+        start_guest(args.guest, qemu_conn)
     elif args.verb == "stop" or args.verb == "shutdown":
         does_guest_exist(known_guests, args.guest)
         if not is_guest_running(qemu_conn, args.guest):
             print(f"NOPE: {args.guest} is already stopped")
             sys.exit(3)
-        shutdown_guest()
+        shutdown_guest(args.guest, qemu_conn)
     elif args.verb == "crash" or args.verb == "destroy":
         does_guest_exist(known_guests, args.guest)
         if not is_guest_running(qemu_conn, args.guest):
             print(f"NOPE: {args.guest} is already stopped")
             sys.exit(3)
-        crash_guest()
+        crash_guest(args.guest, qemu_conn)
     elif args.verb == "create" or args.verb == "delete":
         print("Unsupported actions for now")
 
