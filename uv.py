@@ -58,7 +58,10 @@ def check_logical_volume_on_remote(ssh_client, logical_volume_name, logical_volu
     )
     if remote_result.returncode != 0:
         print(f"I can't find {logical_volume_name} on remote")
-        lvcreate_cmd = f"lvcreate -L{logical_volume_size}B -n{logical_volume_name.split('/')[-1]} ubuntu-vg"
+        lvcreate_cmd = (
+            f"lvcreate -L{logical_volume_size}B "
+            + f"-n{logical_volume_name.split('/')[-1]} ubuntu-vg"
+        )
         print(lvcreate_cmd)
         copy_remote_answer = input("Should I run this command on remote? (yes)\n")
         if copy_remote_answer != "yes":
