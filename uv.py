@@ -191,6 +191,10 @@ def offline_migration(qemu_conn, ssh_client, guest, logical_volumes_dict):
     print(f"Starting {guest} on remote")
     ssh_client.exec_command(f"virsh start {guest}")
 
+    undefine_guest(guest)
+
+
+def undefine_guest(guest):
     print(f"Undefining {guest} on local")
     cmd = ["virsh", "undefine", guest]
     subprocess.run(cmd)
@@ -342,8 +346,18 @@ def main():
                 print("{:30}  ON".format(guest))
             elif not running and not args.on:
                 print("{:30}  OFF".format(guest))
+    elif args.verb == "delete":
+        does_guest_exist(known_guests, args.guest)
+        if is_guest_running(qemu_conn, args.guest):
+            print("Guest is still running, please shut it down first")
+            sys.exit(3)
 
-    elif args.verb == "create" or args.verb == "delete":
+        if not args.yes:
+            confirmation = input(f"Confirm you want to delete {args.guest} ('yes' to confirm)?\n")
+            if confirmation != "yes":
+                sys.exit(3)
+        undefine_guest(guest)
+    elif args.verb == "create":
         print("Unsupported actions for now")
 
 

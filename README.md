@@ -88,8 +88,19 @@ optional arguments:
   --vnc       Show VNC ports used by the guest
 ```
 
+```
+# ./uv.py delete --help
+usage: uv.py delete [-h] [--yes] guest
+
+positional arguments:
+  guest       Name of the guest
+
+optional arguments:
+  -h, --help  show this help message and exit
+  --yes       Don't ask for confirmation
+```
+
 
 # Planned support
 
 * Guest creation
-* Guest deletion
