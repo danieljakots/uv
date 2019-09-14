@@ -46,7 +46,9 @@ def check_logical_volume_on_local(logical_volume):
     return size
 
 
-def check_logical_volume_on_remote(ssh_client, logical_volume_name, logical_volume_size):
+def check_logical_volume_on_remote(
+    ssh_client, logical_volume_name, logical_volume_size
+):
     remote_cmd = [
         "ssh",
         "otherkvm",
@@ -207,7 +209,9 @@ def main():
     # Check all the lv exist on remote
     for logical_volume_name, logical_volume_size in known_guests[guest].items():
         print(f"Checking {logical_volume_name} (size {logical_volume_size}B)")
-        check_logical_volume_on_remote(ssh_client, logical_volume_name, logical_volume_size)
+        check_logical_volume_on_remote(
+            ssh_client, logical_volume_name, logical_volume_size
+        )
 
     offline_migration(qemu_conn, ssh_client, guest, known_guests[guest])
 
