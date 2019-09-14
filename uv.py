@@ -166,6 +166,24 @@ def offline_migration(qemu_conn, ssh_client, guest, logical_volumes_dict):
     for logical_volume_name, logical_volume_size in logical_volumes_dict.items():
         copy_logical_volume(logical_volume_name, logical_volume_size)
 
+    # Dump the guest definition and ship it to the other kvm
+    cmd = ["virsh", "dumpxml", guest]
+    with open(f"/root/{guest}.xml", "w") as f:
+        subprocess.run(cmd, stdout=f)
+    copy_definition(guest, ssh_client)
+
+    print(f"Defining {guest} on remote")
+    ssh_client.exec_command(f"virsh define /root/{guest}.xml")
+
+    # It might be too fast otherwise
+    time.sleep(1)
+    print(f"Starting {guest} on remote")
+    ssh_client.exec_command(f"virsh start {guest}")
+
+    print(f"Undefining {guest} on local")
+    cmd = ["virsh", "undefine", guest]
+    subprocess.run(cmd)
+
 
 def main():
     qemu_conn = libvirt.open("qemu:///system")
@@ -189,24 +207,6 @@ def main():
         check_logical_volume_on_remote(ssh_client, logical_volume_name, logical_volume_size)
 
     offline_migration(qemu_conn, ssh_client, guest, known_guests[guest])
-
-    # Dump the guest definition and ship it to the other kvm
-    cmd = ["virsh", "dumpxml", guest]
-    with open(f"/root/{guest}.xml", "w") as f:
-        subprocess.run(cmd, stdout=f)
-    copy_definition(guest, ssh_client)
-
-    print(f"Defining {guest} on remote")
-    ssh_client.exec_command(f"virsh define /root/{guest}.xml")
-
-    # It might be too fast otherwise
-    time.sleep(1)
-    print(f"Starting {guest} on remote")
-    ssh_client.exec_command(f"virsh start {guest}")
-
-    print(f"Undefining {guest} on local")
-    cmd = ["virsh", "undefine", guest]
-    subprocess.run(cmd)
 
 
 if __name__ == "__main__":
