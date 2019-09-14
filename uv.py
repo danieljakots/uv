@@ -144,6 +144,13 @@ def list_disks(qemu_conn, guest):
             yield device
 
 
+def list_vnc_port(qemu_conn, guest):
+    xml = qemu_conn.lookupByName(guest).XMLDesc()
+    for line in xml.split("\n"):
+        if "graphics type='vnc'" in line:
+            return line.split("port='")[1][:4]
+
+
 def inventary(qemu_conn):
     guests = {}
     for guest in list_guests(qemu_conn):
@@ -246,6 +253,7 @@ def parse_cli():
     group = parser_list.add_mutually_exclusive_group()
     group.add_argument("--on", action="store_true")
     group.add_argument("--off", action="store_true")
+    group.add_argument("--vnc", action="store_true", help="Show VNC ports used by the guest")
 
     parser_delete = subparsers.add_parser("delete", help="Delete an existing guest")
     parser_delete.add_argument("guest", help="Name of the guest")
@@ -322,9 +330,12 @@ def main():
     elif args.verb == "list":
         for guest in known_guests.keys():
             running = is_guest_running(qemu_conn, guest)
-            if running and not args.off:
+            if args.vnc:
+                vnc_port = list_vnc_port(qemu_conn, guest)
+                print("{:30} {}".format(guest, vnc_port))
+            elif running and not args.off:
                 print("{:30}  ON".format(guest))
-            if not running and not args.on:
+            elif not running and not args.on:
                 print("{:30}  OFF".format(guest))
 
     elif args.verb == "create" or args.verb == "delete":
