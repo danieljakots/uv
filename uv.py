@@ -121,6 +121,16 @@ def shutdown_guest(guest, qemu_conn):
     print("Guest is down")
 
 
+def start_guest(guest, qemu_conn):
+    qemu_conn.lookupByName(guest).create()
+    print("Guest has been started")
+
+
+def crash_guest(guest, qemu_conn):
+    qemu_conn.lookupByName(guest).destroy()
+    print("Guest has been detroyed")
+
+
 def list_guests(qemu_conn):
     for guest in qemu_conn.listAllDomains():
         yield guest.name()
@@ -216,6 +226,9 @@ def parse_cli():
     parser_create.add_argument("guest", help="Name of the guest")
     parser_create.add_argument("--cpu", help="How many CPU", type=int, default=2)
 
+    parser_start = subparsers.add_parser("start", help="Start an existing guest")
+    parser_start.add_argument("guest", help="Name of the guest")
+
     parser_move = subparsers.add_parser("move", help="Move an existing guest")
     parser_move.add_argument("guest", help="Name of the guest")
     group = parser_move.add_mutually_exclusive_group(required=True)
@@ -227,11 +240,22 @@ def parse_cli():
         help="By default it will send a bell to the term once the migration is done",
     )
 
+    parser_stop = subparsers.add_parser(
+        "stop", aliases=["shutdown"], help="Stop cleanly an existing guest"
+    )
+    parser_stop.add_argument("guest", help="Name of the guest")
+
+    parser_crash = subparsers.add_parser(
+        "crash", aliases=["destroy"], help="Pull the plug on an existing guest"
+    )
+    parser_crash.add_argument("guest", help="Name of the guest")
+
     parser_delete = subparsers.add_parser("delete", help="Delete an existing guest")
     parser_delete.add_argument("guest", help="Name of the guest")
     parser_delete.add_argument(
         "--yes", help="Don't ask for confirmation", action="store_true"
     )
+
     return parser.parse_args()
 
 
@@ -280,6 +304,21 @@ def main():
         if not args.disable_bell:
             # print a bell to notify the migration is done
             print("\a")
+    elif args.verb == "start":
+        if is_guest_running(qemu_conn, args.guest):
+            print(f"NOPE: {args.guest} is already running")
+            sys.exit(3)
+        start_guest()
+    elif args.verb == "stop" or args.verb == "shutdown":
+        if not is_guest_running(qemu_conn, args.guest):
+            print(f"NOPE: {args.guest} is already stopped")
+            sys.exit(3)
+        shutdown_guest()
+    elif args.verb == "crash" or args.verb == "destroy":
+        if not is_guest_running(qemu_conn, args.guest):
+            print(f"NOPE: {args.guest} is already stopped")
+            sys.exit(3)
+        crash_guest()
 
 
 if __name__ == "__main__":

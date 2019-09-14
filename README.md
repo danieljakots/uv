@@ -12,10 +12,57 @@ Wrapper around virsh and lvm to make a "cloud" easier to manage
 
 # Current support
 
-It supports both *live* and *offline* migration
-
 ```
-# usage: uv.py move [-h] (--live | --offline) [--disable-bell] vm
+# ./uv.py --help
+usage: uv.py [-h] {move,start,stop,shutdown,crash,destroy} ...
+
+positional arguments:
+  {create,move,delete,start,stop,shutdown,crash,destroy}
+                        Type of action you want to do
+    move                Move an existing guest
+    start               Start an existing guest
+    stop (shutdown)     Stop cleanly an existing guest
+    crash (destroy)     Pull the plug on an existing guest
+
+optional arguments:
+  -h, --help            show this help message and exit
+# ./uv.py start --help
+usage: uv.py start [-h] guest
+
+positional arguments:
+  guest       Name of the guest
+
+optional arguments:
+  -h, --help  show this help message and exit
+# ./uv.py stop --help
+usage: uv.py stop [-h] guest
+
+positional arguments:
+  guest       Name of the guest
+
+optional arguments:
+  -h, --help  show this help message and exit
+# ./uv.py crash --help
+usage: uv.py crash [-h] guest
+
+positional arguments:
+  guest       Name of the guest
+
+optional arguments:
+  -h, --help  show this help message and exit
+
+# ./uv.py move --help
+usage: uv.py move [-h] (--live | --offline) [--disable-bell] guest
+
+positional arguments:
+  guest           Name of the guest
+
+optional arguments:
+  -h, --help      show this help message and exit
+  --live
+  --offline
+  --disable-bell  By default it will send a bell to the term once the
+                  migration is done
 ```
 
 # Planned support
