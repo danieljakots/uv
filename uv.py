@@ -250,6 +250,11 @@ def parse_cli():
     )
     parser_crash.add_argument("guest", help="Name of the guest")
 
+    parser_list = subparsers.add_parser("list", help="List existing guests")
+    group = parser_list.add_mutually_exclusive_group()
+    group.add_argument("--on", action="store_true")
+    group.add_argument("--off", action="store_true")
+
     parser_delete = subparsers.add_parser("delete", help="Delete an existing guest")
     parser_delete.add_argument("guest", help="Name of the guest")
     parser_delete.add_argument(
@@ -322,6 +327,14 @@ def main():
             print(f"NOPE: {args.guest} is already stopped")
             sys.exit(3)
         crash_guest(args.guest, qemu_conn)
+    elif args.verb == "list":
+        for guest in known_guests.keys():
+            running = is_guest_running(qemu_conn, guest)
+            if running and not args.off:
+                print("{:30}  ON".format(guest))
+            if not running and not args.on:
+                print("{:30}  OFF".format(guest))
+
     elif args.verb == "create" or args.verb == "delete":
         print("Unsupported actions for now")
 

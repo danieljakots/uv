@@ -23,6 +23,7 @@ positional arguments:
     start               Start an existing guest
     stop (shutdown)     Stop cleanly an existing guest
     crash (destroy)     Pull the plug on an existing guest
+    list                List existing guests
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -75,6 +76,17 @@ optional arguments:
   --disable-bell  By default it will send a bell to the term once the
                   migration is done
 ```
+
+```
+# ./uv.py list --help
+usage: uv.py list [-h] [--on | --off]
+
+optional arguments:
+  -h, --help  show this help message and exit
+  --on
+  --off
+```
+
 
 # Planned support
 
