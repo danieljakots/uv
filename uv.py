@@ -244,7 +244,7 @@ def main():
     if args.verb == "move":
         # Check all the lv exist on remote
         for logical_volume_name, logical_volume_size in known_guests[args.guest].items():
-            print(f"Checking {logical_volume_name} (size {logical_volume_size}B)")
+            print(f"Checking on remote {logical_volume_name} (size {logical_volume_size}B)")
             check_logical_volume_on_remote(
                 ssh_client, logical_volume_name, logical_volume_size
             )
