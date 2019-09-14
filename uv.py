@@ -221,6 +221,11 @@ def parse_cli():
     group = parser_move.add_mutually_exclusive_group(required=True)
     group.add_argument("--live", action="store_true")
     group.add_argument("--offline", action="store_true")
+    parser_move.add_argument(
+        "--disable-bell",
+        action="store_true",
+        help="By default it will send a bell to the term once the migration is done",
+    )
 
     parser_delete = subparsers.add_parser("delete", help="Delete an existing guest")
     parser_delete.add_argument("guest", help="Name of the guest")
@@ -270,6 +275,9 @@ def main():
             offline_migration(qemu_conn, ssh_client, args.guest, known_guests[args.guest])
         if args.live:
             live_migration(args.guest)
+        if not args.disable_bell:
+            # print a bell to notify the migration is done
+            print("\a")
 
 
 if __name__ == "__main__":

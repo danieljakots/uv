@@ -15,7 +15,7 @@ Wrapper around virsh and lvm to make a "cloud" easier to manage
 It supports both *live* and *offline* migration
 
 ```
-# usage: uv.py move [-h] (--live | --offline) guest
+# usage: uv.py move [-h] (--live | --offline) [--disable-bell] vm
 ```
 
 # Planned support
