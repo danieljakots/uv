@@ -211,7 +211,15 @@ def parse_cli():
     return parser.parse_args()
 
 
-def main():
+def does_guest_exist(known_guests, guest):
+    if guest not in known_guests.keys():
+        print(f"NOPE: guest {guest} not known")
+        print("Known guests are")
+        print(known_guests.keys())
+        sys.exit(1)
+
+
+def init():
     qemu_conn = libvirt.open("qemu:///system")
 
     # Try to connect, to check if the otherkvm is reachable
@@ -223,14 +231,15 @@ def main():
         print("NOPE, I can't ssh into the other kvm")
         sys.exit(3)
 
-    # Find out which guests run on the kvm and get the user choice
+    return qemu_conn, ssh_client
+
+
+def main():
+    qemu_conn, ssh_client = init()
+
     known_guests = inventary(qemu_conn)
     args = parse_cli()
-    if args.guest not in known_guests.keys():
-        print(f"NOPE: guest {args.guest} not known")
-        print("Known guests are")
-        print(known_guests.keys())
-        sys.exit(1)
+    does_guest_exist(known_guests, args.guest)
 
     # Check all the lv exist on remote
     for logical_volume_name, logical_volume_size in known_guests[args.guest].items():
