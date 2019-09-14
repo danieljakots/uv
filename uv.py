@@ -101,9 +101,9 @@ def copy_logical_volume(logical_volume_name, logical_volume_size):
 
 
 def copy_definition(guest, ssh_client):
-    ftp_client = ssh_client.open_sftp()
-    ftp_client.put(f"/root/{guest}.xml", f"/root/{guest}.xml")
-    ftp_client.close()
+    sftp_client = ssh_client.open_sftp()
+    sftp_client.put(f"/root/{guest}.xml", f"/root/{guest}.xml")
+    sftp_client.close()
 
 
 def shutdown_guest(guest, qemu_conn):
