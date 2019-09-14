@@ -26,6 +26,9 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
+```
+
+```
 # ./uv.py start --help
 usage: uv.py start [-h] guest
 
@@ -34,6 +37,9 @@ positional arguments:
 
 optional arguments:
   -h, --help  show this help message and exit
+```
+
+```
 # ./uv.py stop --help
 usage: uv.py stop [-h] guest
 
@@ -42,6 +48,9 @@ positional arguments:
 
 optional arguments:
   -h, --help  show this help message and exit
+```
+
+```
 # ./uv.py crash --help
 usage: uv.py crash [-h] guest
 
@@ -50,7 +59,9 @@ positional arguments:
 
 optional arguments:
   -h, --help  show this help message and exit
+```
 
+```
 # ./uv.py move --help
 usage: uv.py move [-h] (--live | --offline) [--disable-bell] guest
 
