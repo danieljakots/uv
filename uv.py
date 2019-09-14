@@ -187,6 +187,25 @@ def offline_migration(qemu_conn, ssh_client, guest, logical_volumes_dict):
     subprocess.run(cmd)
 
 
+def live_migration(guest):
+    # persistent will define the guest on remote
+    # undefinesource will undefine the guest on local
+    cmd = [
+        "virsh",
+        "migrate",
+        "--verbose",
+        "--live",
+        "--copy-storage-all",
+        "--persistent",
+        "--undefinesource",
+        guest,
+        "qemu+ssh://otherkvm/system",
+    ]
+    # Using that instead of subprocess.run to have the progress in real time
+    print("Running ", " ".join(cmd))
+    os.system(" ".join(cmd))
+
+
 def parse_cli():
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(
@@ -251,6 +270,8 @@ def main():
 
         if args.offline:
             offline_migration(qemu_conn, ssh_client, args.guest, known_guests[args.guest])
+        if args.live:
+            live_migration(args.guest)
 
 
 if __name__ == "__main__":
