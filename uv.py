@@ -155,14 +155,6 @@ def inventary(qemu_conn):
     return guests
 
 
-def what_to_move(known_guests):
-    if len(sys.argv) == 1:
-        guest = input("Which VM to move? ")
-    else:
-        guest = sys.argv[1]
-    return guest
-
-
 def offline_migration(qemu_conn, ssh_client, guest, logical_volumes_dict):
     # Shutdown the guest if it runs and wait until it's down
     print(f"Moving {guest}")
