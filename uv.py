@@ -319,6 +319,8 @@ def main():
             print(f"NOPE: {args.guest} is already stopped")
             sys.exit(3)
         crash_guest()
+    elif args.verb == "create" or args.verb == "delete":
+        print("Unsupported actions for now")
 
 
 if __name__ == "__main__":
