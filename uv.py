@@ -262,11 +262,9 @@ def main():
 
     if args.verb == "move":
         # Check all the lv exist on remote
-        for logical_volume_name, logical_volume_size in known_guests[args.guest].items():
-            print(f"Checking on remote {logical_volume_name} (size {logical_volume_size}B)")
-            check_logical_volume_on_remote(
-                ssh_client, logical_volume_name, logical_volume_size
-            )
+        for lv_name, lv_size in known_guests[args.guest].items():
+            print(f"Checking on remote {lv_name} (size {lv_size}B)")
+            check_logical_volume_on_remote(ssh_client, lv_name, lv_size)
 
         if args.offline:
             offline_migration(qemu_conn, ssh_client, args.guest, known_guests[args.guest])
