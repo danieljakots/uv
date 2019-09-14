@@ -79,12 +79,13 @@ optional arguments:
 
 ```
 # ./uv.py list --help
-usage: uv.py list [-h] [--on | --off]
+usage: uv.py list [-h] [--on | --off | --vnc]
 
 optional arguments:
   -h, --help  show this help message and exit
-  --on
-  --off
+  --on        List only guests powered on
+  --off       List only guests powered off
+  --vnc       Show VNC ports used by the guest
 ```
 
 
