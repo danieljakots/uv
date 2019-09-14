@@ -253,7 +253,9 @@ def parse_cli():
     group = parser_list.add_mutually_exclusive_group()
     group.add_argument("--on", action="store_true")
     group.add_argument("--off", action="store_true")
-    group.add_argument("--vnc", action="store_true", help="Show VNC ports used by the guest")
+    group.add_argument(
+        "--vnc", action="store_true", help="Show VNC ports used by the guest"
+    )
 
     parser_delete = subparsers.add_parser("delete", help="Delete an existing guest")
     parser_delete.add_argument("guest", help="Name of the guest")
