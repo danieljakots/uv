@@ -78,13 +78,5 @@ optional arguments:
 
 # Planned support
 
-Guest creation
-```
-usage: uv.py create [-h] [--cpu CPU] guest
-```
-
-Guest deletion
-
-```
-usage: uv.py [-h] {create,move,delete} ...
-```
+* Guest creation
+* Guest deletion
