@@ -287,9 +287,9 @@ def main():
 
     known_guests = inventary(qemu_conn)
     args = parse_cli()
-    does_guest_exist(known_guests, args.guest)
 
     if args.verb == "move":
+        does_guest_exist(known_guests, args.guest)
         # Check all the lv exist on remote
         for lv_name, lv_size in known_guests[args.guest].items():
             print(f"Checking on remote {lv_name} (size {lv_size}B)")
@@ -305,16 +305,19 @@ def main():
             # print a bell to notify the migration is done
             print("\a")
     elif args.verb == "start":
+        does_guest_exist(known_guests, args.guest)
         if is_guest_running(qemu_conn, args.guest):
             print(f"NOPE: {args.guest} is already running")
             sys.exit(3)
         start_guest()
     elif args.verb == "stop" or args.verb == "shutdown":
+        does_guest_exist(known_guests, args.guest)
         if not is_guest_running(qemu_conn, args.guest):
             print(f"NOPE: {args.guest} is already stopped")
             sys.exit(3)
         shutdown_guest()
     elif args.verb == "crash" or args.verb == "destroy":
+        does_guest_exist(known_guests, args.guest)
         if not is_guest_running(qemu_conn, args.guest):
             print(f"NOPE: {args.guest} is already stopped")
             sys.exit(3)
