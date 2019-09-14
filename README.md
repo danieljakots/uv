@@ -10,7 +10,7 @@ Wrapper around virsh and lvm to make a "cloud" easier to manage
 * Guests (VMs) use only lvm backed disks, no qcow2/raw
 * You have installed on the KVMs *python3.6+*, *python3-libvirt*, *python3-paramiko*, and zstd
 
-# Current support
+# Current features
 
 ```
 # ./uv.py --help
