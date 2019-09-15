@@ -281,9 +281,7 @@ def does_guest_exist(known_guests, guest):
         sys.exit(1)
 
 
-def init():
-    qemu_conn = libvirt.open("qemu:///system")
-
+def ssh_init():
     # Try to connect, to check if the otherkvm is reachable
     try:
         ssh_client = paramiko.SSHClient()
@@ -293,16 +291,18 @@ def init():
         print("NOPE, I can't ssh into the other kvm")
         sys.exit(3)
 
-    return qemu_conn, ssh_client
+    return ssh_client
 
 
 def main():
-    qemu_conn, ssh_client = init()
+    qemu_conn = libvirt.open("qemu:///system")
 
     known_guests = inventary(qemu_conn)
     args = parse_cli()
 
     if args.verb == "move":
+        ssh_client = ssh_init()
+
         does_guest_exist(known_guests, args.guest)
         # Check all the lv exist on remote
         for lv_name, lv_size in known_guests[args.guest].items():
