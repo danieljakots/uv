@@ -72,6 +72,7 @@ def check_logical_volume_on_remote(
             sys.exit(1)
         else:
             stdin, stdout, stderr = ssh_client.exec_command(lvcreate_cmd)
+            # Recheck
             remote_result = subprocess.run(
                 remote_cmd,
                 stdout=subprocess.PIPE,
