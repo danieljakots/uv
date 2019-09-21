@@ -302,6 +302,7 @@ def main():
     args = parse_cli()
 
     if args.verb == "move":
+        time_begin = time.time()
         ssh_client = ssh_init()
 
         does_guest_exist(known_guests, args.guest)
@@ -319,6 +320,9 @@ def main():
         if not args.disable_bell:
             # print a bell to notify the migration is done
             print("\a")
+        time_end = time.time()
+        total_time = int(time_end - time_begin)
+        print(f"Migration took {str(total_time)}s")
     elif args.verb == "start":
         does_guest_exist(known_guests, args.guest)
         if is_guest_running(qemu_conn, args.guest):
