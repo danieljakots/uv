@@ -249,6 +249,9 @@ def parse_cli():
     )
     parser_stop.add_argument("guest", help="Name of the guest")
 
+    parser_reboot = subparsers.add_parser("reboot", help="Reboot an existing guest")
+    parser_reboot.add_argument("guest", help="Name of the guest")
+
     parser_crash = subparsers.add_parser(
         "crash", aliases=["destroy"], help="Pull the plug on an existing guest"
     )
@@ -336,6 +339,15 @@ def main():
             print(f"NOPE: {args.guest} is already stopped")
             sys.exit(3)
         shutdown_guest(args.guest, qemu_conn)
+    elif args.verb == "reboot":
+        does_guest_exist(known_guests, args.guest)
+        if not is_guest_running(qemu_conn, args.guest):
+            print(f"NOPE: {args.guest} is already stopped")
+            sys.exit(3)
+        # It's a stop + start to ensure libvirt rereads the guest definition
+        shutdown_guest(args.guest, qemu_conn)
+        time.sleep(2)
+        start_guest(args.guest, qemu_conn)
     elif args.verb == "crash" or args.verb == "destroy":
         does_guest_exist(known_guests, args.guest)
         if not is_guest_running(qemu_conn, args.guest):
