@@ -14,17 +14,21 @@ Wrapper around virsh and lvm to make a "cloud" easier to manage
 
 ```
 # ./uv.py --help
-usage: uv.py [-h] {move,start,stop,shutdown,crash,destroy} ...
+usage: uv.py [-h]
+             {create,start,move,stop,shutdown,reboot,crash,destroy,list,delete}
+             ...
 
 positional arguments:
-  {create,move,delete,start,stop,shutdown,crash,destroy}
+  {create,start,move,stop,shutdown,reboot,crash,destroy,list,delete}
                         Type of action you want to do
-    move                Move an existing guest
+    create              Create a new guest
     start               Start an existing guest
+    move                Move an existing guest
     stop (shutdown)     Stop cleanly an existing guest
     reboot              Reboot an existing guest
     crash (destroy)     Pull the plug on an existing guest
-    list                List existing guests
+    list                List all existing guests
+    delete              Delete an existing guest
 
 optional arguments:
   -h, --help            show this help message and exit
