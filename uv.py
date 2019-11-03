@@ -274,6 +274,7 @@ def parse_cli():
     return parser.parse_args()
 
 
+# XXX it should return True/False
 def does_guest_exist(known_guests, guest):
     if guest not in known_guests.keys():
         print(f"NOPE: guest {guest} not known")
