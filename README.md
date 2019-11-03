@@ -22,6 +22,7 @@ positional arguments:
     move                Move an existing guest
     start               Start an existing guest
     stop (shutdown)     Stop cleanly an existing guest
+    reboot              Reboot an existing guest
     crash (destroy)     Pull the plug on an existing guest
     list                List existing guests
 
@@ -47,6 +48,19 @@ optional arguments:
 ```
 # ./uv.py stop --help
 usage: uv.py stop [-h] guest
+
+positional arguments:
+  guest       Name of the guest
+
+optional arguments:
+  -h, --help  show this help message and exit
+```
+
+## Reboot a guest
+
+```
+# ./uv.py reboot --help
+usage: uv.py reboot [-h] guest
 
 positional arguments:
   guest       Name of the guest
