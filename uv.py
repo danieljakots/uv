@@ -277,13 +277,8 @@ def parse_cli():
     return parser.parse_args()
 
 
-# XXX it should return True/False
 def does_guest_exist(known_guests, guest):
-    if guest not in known_guests.keys():
-        print(f"NOPE: guest {guest} not known")
-        print("Known guests are")
-        print(known_guests.keys())
-        sys.exit(1)
+    return guest in known_guests.keys()
 
 
 def ssh_init():
@@ -309,7 +304,9 @@ def main():
         time_begin = time.time()
         ssh_client = ssh_init()
 
-        does_guest_exist(known_guests, args.guest)
+        if not does_guest_exist(known_guests, args.guest):
+            print(f"NOPE: guest {args.guest} not known")
+            sys.exit(3)
         # Check all the lv exist on remote
         for lv_name, lv_size in known_guests[args.guest].items():
             print(f"Checking on remote {lv_name} (size {lv_size}B)")
@@ -328,19 +325,25 @@ def main():
         total_time = int(time_end - time_begin)
         print(f"Migration took {str(total_time)}s")
     elif args.verb == "start":
-        does_guest_exist(known_guests, args.guest)
+        if not does_guest_exist(known_guests, args.guest):
+            print(f"NOPE: guest {args.guest} not known")
+            sys.exit(3)
         if is_guest_running(qemu_conn, args.guest):
             print(f"NOPE: {args.guest} is already running")
             sys.exit(3)
         start_guest(args.guest, qemu_conn)
     elif args.verb == "stop" or args.verb == "shutdown":
-        does_guest_exist(known_guests, args.guest)
+        if not does_guest_exist(known_guests, args.guest):
+            print(f"NOPE: guest {args.guest} not known")
+            sys.exit(3)
         if not is_guest_running(qemu_conn, args.guest):
             print(f"NOPE: {args.guest} is already stopped")
             sys.exit(3)
         shutdown_guest(args.guest, qemu_conn)
     elif args.verb == "reboot":
-        does_guest_exist(known_guests, args.guest)
+        if not does_guest_exist(known_guests, args.guest):
+            print(f"NOPE: guest {args.guest} not known")
+            sys.exit(3)
         if not is_guest_running(qemu_conn, args.guest):
             print(f"NOPE: {args.guest} is already stopped")
             sys.exit(3)
@@ -349,7 +352,9 @@ def main():
         time.sleep(2)
         start_guest(args.guest, qemu_conn)
     elif args.verb == "crash" or args.verb == "destroy":
-        does_guest_exist(known_guests, args.guest)
+        if not does_guest_exist(known_guests, args.guest):
+            print(f"NOPE: guest {args.guest} not known")
+            sys.exit(3)
         if not is_guest_running(qemu_conn, args.guest):
             print(f"NOPE: {args.guest} is already stopped")
             sys.exit(3)
@@ -365,7 +370,9 @@ def main():
             elif not running and not args.on:
                 print("{:30}  OFF".format(guest))
     elif args.verb == "delete":
-        does_guest_exist(known_guests, args.guest)
+        if not does_guest_exist(known_guests, args.guest):
+            print(f"NOPE: guest {args.guest} not known")
+            sys.exit(3)
         if is_guest_running(qemu_conn, args.guest):
             print("Guest is still running, please shut it down first")
             sys.exit(3)
