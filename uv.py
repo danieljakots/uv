@@ -406,6 +406,7 @@ def main():
                 sys.exit(3)
         undefine_guest(guest)
     elif args.verb == "create":
+        # Check mac address
         comp = re.compile("^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$")
         if not comp.fullmatch(args.mac):
             print("Given mac address is invalid")
