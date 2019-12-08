@@ -40,7 +40,7 @@ def check_logical_volume_on_local(logical_volume):
     )
     if local_result.returncode != 0:
         print(f"I can't find {logical_volume} on local")
-        sys.exit(1)
+        sys.exit(3)
 
     # in Bytes
     size = local_result.stdout.strip()
@@ -70,7 +70,7 @@ def check_logical_volume_on_remote(
             "Should I run this command on remote? ('yes' to confirm)\n"
         )
         if copy_remote_answer != "yes":
-            sys.exit(1)
+            sys.exit(3)
         else:
             stdin, stdout, stderr = ssh_client.exec_command(lvcreate_cmd)
             # Recheck
@@ -85,7 +85,7 @@ def check_logical_volume_on_remote(
     if local_size != remote_size:
         print(f"{logical_volume_name} is not the same size on local vs remote:")
         print(f"{local_size}B on local VS {remote_size}B on remote")
-        sys.exit(1)
+        sys.exit(3)
 
 
 def copy_logical_volume(logical_volume_name, logical_volume_size):
