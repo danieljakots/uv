@@ -117,6 +117,7 @@ def copy_definition(guest, ssh_client):
 def shutdown_guest(guest, qemu_conn):
     qemu_conn.lookupByName(guest).shutdown()
     print("Guest has been shat down")
+    # XXX split the loop in another function and --no-wait option to stop command
     while is_guest_running(qemu_conn, guest):
         time.sleep(1)
     print("Guest is down")
