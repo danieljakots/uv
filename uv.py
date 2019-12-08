@@ -5,6 +5,7 @@
 # Licensed under the MIT license. See the LICENSE file.
 
 import argparse
+# XXX remove os with subprocess.run
 import os
 import socket
 import subprocess
