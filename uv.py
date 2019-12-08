@@ -430,6 +430,7 @@ def main():
         with open(f"/etc/libvirt/qemu/{args.guest}.xml", "w") as f:
             f.write(new_guest_definition)
             f.write("\n")
+        print("Definining new guest")
         os.system(f"virsh define /etc/libvirt/qemu/{args.guest}.xml")
 
 
