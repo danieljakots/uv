@@ -10,13 +10,24 @@ Wrapper around virsh and lvm to make a "cloud" easier to manage
 * Guests (VMs) use only lvm backed disks, no qcow2/raw
 * You have installed on the KVMs *pv*, *python3.6+*, *python3-jinja2*, *python3-libvirt*, *python3-paramiko*, and *zstd*
 
+# Raison d'être
+
+This script was initially written to ease guest migration between servers. I
+was checking some stuff manually (which was therefore error-prone) so I decided
+to automate it through a script. I don't really like the *virsh(1)* commands.
+For instance it bothers me that to start it's "start" but to stop, it's not
+"stop" but "shutdown", to hard stop is "destroy", "destroy is not clear for me,
+and scary. Note that you can still use these verbs.
+
 # Current features
 
+Here's the current features
+
 ```
-# ./uv.py --help
-usage: uv.py [-h]
-             {create,start,move,stop,shutdown,reboot,crash,destroy,list,delete}
-             ...
+# uv --help
+usage: uv [-h]
+          {create,start,move,stop,shutdown,reboot,crash,destroy,list,delete}
+          ...
 
 positional arguments:
   {create,start,move,stop,shutdown,reboot,crash,destroy,list,delete}
@@ -29,124 +40,8 @@ positional arguments:
     crash (destroy)     Pull the plug on an existing guest
     list                List all existing guests
     delete              Delete an existing guest
-
-optional arguments:
-  -h, --help            show this help message and exit
 ```
 
-## Create a guest
-
-```
-# ./uv.py create --help
-usage: uv.py create [-h] --template TEMPLATE --cpu CPU --ram RAM --mac MAC
-                    --vnc VNC
-                    guest
-
-positional arguments:
-  guest                Name of the guest
-
-optional arguments:
-  -h, --help           show this help message and exit
-  --template TEMPLATE  Which template to use for the definition
-  --cpu CPU            How many CPU
-  --ram RAM            How much RAM (in G)
-  --mac MAC            Which mac address
-  --vnc VNC            Which tcp port for VNC
-```
-
-## Start a guest
-
-```
-# ./uv.py start --help
-usage: uv.py start [-h] guest
-
-positional arguments:
-  guest       Name of the guest
-
-optional arguments:
-  -h, --help  show this help message and exit
-```
-
-## Stop a guest
-
-```
-# ./uv.py stop --help
-usage: uv.py stop [-h] guest
-
-positional arguments:
-  guest       Name of the guest
-
-optional arguments:
-  -h, --help  show this help message and exit
-```
-
-## Reboot a guest
-
-```
-# ./uv.py reboot --help
-usage: uv.py reboot [-h] guest
-
-positional arguments:
-  guest       Name of the guest
-
-optional arguments:
-  -h, --help  show this help message and exit
-```
-
-## Crash a guest
-
-```
-# ./uv.py crash --help
-usage: uv.py crash [-h] guest
-
-positional arguments:
-  guest       Name of the guest
-
-optional arguments:
-  -h, --help  show this help message and exit
-```
-
-## Move a guest
-
-```
-# ./uv.py move --help
-usage: uv.py move [-h] (--live | --offline) [--disable-bell] guest
-
-positional arguments:
-  guest           Name of the guest
-
-optional arguments:
-  -h, --help      show this help message and exit
-  --live
-  --offline
-  --disable-bell  By default it will send a bell to the term once the
-                  migration is done
-```
-
-## List guests
-
-```
-# ./uv.py list --help
-usage: uv.py list [-h] [--on | --off | --vnc]
-
-optional arguments:
-  -h, --help  show this help message and exit
-  --on        List only guests powered on
-  --off       List only guests powered off
-  --vnc       Show VNC ports used by the guest
-```
-
-## Delete a guest
-
-```
-# ./uv.py delete --help
-usage: uv.py delete [-h] [--yes] guest
-
-positional arguments:
-  guest       Name of the guest
-
-optional arguments:
-  -h, --help  show this help message and exit
-  --yes       Don't ask for confirmation
-```
-
+Most of them are pretty close to virsh but create. To use create, take an
+existing guest definition and transform it as a jinja template. You can find
+template00.xml.j2 in the repository as an example.
