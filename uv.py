@@ -7,11 +7,14 @@
 import argparse
 # XXX remove os with subprocess.run
 import os
+import re
 import socket
 import subprocess
 import sys
 import time
+import uuid
 
+import jinja2
 import libvirt
 import paramiko
 
@@ -230,7 +233,22 @@ def parse_cli():
 
     parser_create = subparsers.add_parser("create", help="Create a new guest")
     parser_create.add_argument("guest", help="Name of the guest")
-    parser_create.add_argument("--cpu", help="How many CPU", type=int, default=2)
+    parser_create.add_argument(
+        "--template",
+        help="Which template to use for the definition",
+        default=2,
+        required=True,
+    )
+    parser_create.add_argument(
+        "--cpu", help="How many CPU", type=int, default=2, required=True
+    )
+    parser_create.add_argument(
+        "--ram", help="How much RAM (in G)", type=float, default=2, required=True
+    )
+    parser_create.add_argument("--mac", help="Which mac address", required=True)
+    parser_create.add_argument(
+        "--vnc", help="Which tcp port for VNC", type=int, required=True
+    )
 
     parser_start = subparsers.add_parser("start", help="Start an existing guest")
     parser_start.add_argument("guest", help="Name of the guest")
@@ -387,7 +405,30 @@ def main():
                 sys.exit(3)
         undefine_guest(guest)
     elif args.verb == "create":
-        print("Unsupported actions for now")
+        comp = re.compile("^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$")
+        if not comp.fullmatch(args.mac):
+            print("Given mac address is invalid")
+            sys.exit(3)
+        guest_uuid = uuid.uuid4()
+        # size is given in G and libvirt takes K
+        ram = int(args.ram * 1024 * 1024)
+        new_guest = {
+            "name": args.guest,
+            "cpu": args.cpu,
+            "ram": ram,
+            "id": guest_uuid,
+            "vnc": args.vnc,
+            "disk": f"/dev/ubuntu-vg/{args.guest}",
+            "mac": args.mac,
+        }
+        with open(args.template, "r") as f:
+            template = f.read()
+        jinja2_template = jinja2.Template(template)
+        new_guest_definition = jinja2_template.render(new_guest=new_guest)
+        with open(f"/etc/libvirt/qemu/{args.guest}.xml", "w") as f:
+            f.write(new_guest_definition)
+            f.write("\n")
+        os.system(f"virsh define /etc/libvirt/qemu/{args.guest}.xml")
 
 
 if __name__ == "__main__":

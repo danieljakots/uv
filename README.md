@@ -8,7 +8,7 @@ Wrapper around virsh and lvm to make a "cloud" easier to manage
 * Each KVM can connect over ssh to its twin through the name *otherkvm*
 * KVMs' firewalls are set to allow traffic required by qemu for the live migrations (*left as an exercise to the reader*)
 * Guests (VMs) use only lvm backed disks, no qcow2/raw
-* You have installed on the KVMs *pv*, *python3.6+*, *python3-libvirt*, *python3-paramiko*, and *zstd*
+* You have installed on the KVMs *pv*, *python3.6+*, *python3-jinja2*, *python3-libvirt*, *python3-paramiko*, and *zstd*
 
 # Current features
 
@@ -32,6 +32,26 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
+```
+
+## Create a guest
+
+```
+# ./uv.py create --help
+usage: uv.py create [-h] --template TEMPLATE --cpu CPU --ram RAM --mac MAC
+                    --vnc VNC
+                    guest
+
+positional arguments:
+  guest                Name of the guest
+
+optional arguments:
+  -h, --help           show this help message and exit
+  --template TEMPLATE  Which template to use for the definition
+  --cpu CPU            How many CPU
+  --ram RAM            How much RAM (in G)
+  --mac MAC            Which mac address
+  --vnc VNC            Which tcp port for VNC
 ```
 
 ## Start a guest
@@ -130,7 +150,3 @@ optional arguments:
   --yes       Don't ask for confirmation
 ```
 
-
-# Planned support
-
-* Guest creation
