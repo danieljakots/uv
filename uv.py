@@ -320,6 +320,18 @@ def ssh_init():
     return ssh_client
 
 
+def check_guest_exists_runs(qemu_conn, known_guests, guest, should_be_running):
+    if not does_guest_exist(known_guests, guest):
+        print(f"NOPE: guest {guest} not known")
+        sys.exit(3)
+    if is_guest_running(qemu_conn, guest) and not should_be_running:
+        print(f"NOPE: {guest} is already running")
+        sys.exit(3)
+    elif not is_guest_running(qemu_conn, guest) and should_be_running:
+        print(f"NOPE: {guest} is already stopped")
+        sys.exit(3)
+
+
 def main():
     qemu_conn = libvirt.open("qemu:///system")
 
@@ -351,43 +363,27 @@ def main():
         total_time = int(time_end - time_begin)
         print(f"Migration took {str(total_time)}s")
     elif args.verb == "start":
-        if not does_guest_exist(known_guests, args.guest):
-            print(f"NOPE: guest {args.guest} not known")
-            sys.exit(3)
-        if is_guest_running(qemu_conn, args.guest):
-            print(f"NOPE: {args.guest} is already running")
-            sys.exit(3)
+        should_be_running = False
+        check_guest_exists_runs(qemu_conn, known_guests, args.guest, should_be_running)
         start_guest(args.guest, qemu_conn)
     elif args.verb == "stop" or args.verb == "shutdown":
-        if not does_guest_exist(known_guests, args.guest):
-            print(f"NOPE: guest {args.guest} not known")
-            sys.exit(3)
-        if not is_guest_running(qemu_conn, args.guest):
-            print(f"NOPE: {args.guest} is already stopped")
-            sys.exit(3)
+        should_be_running = True
+        check_guest_exists_runs(qemu_conn, known_guests, args.guest, should_be_running)
         shutdown_guest(args.guest, qemu_conn)
         # action="store_false" so if it's true, the flag wasn't given
         if args.no_wait:
             wait_for_guest_down(args.guest, qemu_conn)
     elif args.verb == "reboot":
-        if not does_guest_exist(known_guests, args.guest):
-            print(f"NOPE: guest {args.guest} not known")
-            sys.exit(3)
-        if not is_guest_running(qemu_conn, args.guest):
-            print(f"NOPE: {args.guest} is already stopped")
-            sys.exit(3)
+        should_be_running = True
+        check_guest_exists_runs(qemu_conn, known_guests, args.guest, should_be_running)
         # It's a stop + start to ensure libvirt rereads the guest definition
         shutdown_guest(args.guest, qemu_conn)
         wait_for_guest_down(args.guest, qemu_conn)
         time.sleep(2)
         start_guest(args.guest, qemu_conn)
     elif args.verb == "crash" or args.verb == "destroy":
-        if not does_guest_exist(known_guests, args.guest):
-            print(f"NOPE: guest {args.guest} not known")
-            sys.exit(3)
-        if not is_guest_running(qemu_conn, args.guest):
-            print(f"NOPE: {args.guest} is already stopped")
-            sys.exit(3)
+        should_be_running = True
+        check_guest_exists_runs(qemu_conn, known_guests, args.guest, should_be_running)
         crash_guest(args.guest, qemu_conn)
     elif args.verb == "list":
         for guest in known_guests.keys():
@@ -400,13 +396,8 @@ def main():
             elif not running and not args.on:
                 print("{:30}  OFF".format(guest))
     elif args.verb == "delete":
-        if not does_guest_exist(known_guests, args.guest):
-            print(f"NOPE: guest {args.guest} not known")
-            sys.exit(3)
-        if is_guest_running(qemu_conn, args.guest):
-            print("Guest is still running, please shut it down first")
-            sys.exit(3)
-
+        should_be_running = False
+        check_guest_exists_runs(qemu_conn, known_guests, args.guest, should_be_running)
         if not args.yes:
             confirmation = input(
                 f"Confirm you want to delete {args.guest} ('yes' to confirm)?\n"
