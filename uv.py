@@ -380,7 +380,9 @@ def main():
             sys.exit(3)
 
         if not args.yes:
-            confirmation = input(f"Confirm you want to delete {args.guest} ('yes' to confirm)?\n")
+            confirmation = input(
+                f"Confirm you want to delete {args.guest} ('yes' to confirm)?\n"
+            )
             if confirmation != "yes":
                 sys.exit(3)
         undefine_guest(guest)
