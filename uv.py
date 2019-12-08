@@ -121,7 +121,9 @@ def copy_definition(guest, ssh_client):
 def shutdown_guest(guest, qemu_conn):
     qemu_conn.lookupByName(guest).shutdown()
     print("Guest has been shat down")
-    # XXX split the loop in another function and --no-wait option to stop command
+
+
+def wait_for_guest_down(guest, qemu_conn):
     while is_guest_running(qemu_conn, guest):
         time.sleep(1)
     print("Guest is down")
@@ -177,6 +179,7 @@ def offline_migration(qemu_conn, ssh_client, guest, logical_volumes_dict):
     else:
         print("Guest is running, shutthing it down")
         shutdown_guest(guest, qemu_conn)
+        wait_for_guest_down(guest, qemu_conn)
     qemu_conn.close()
 
     # Get the disk(s) on the other host
@@ -268,6 +271,9 @@ def parse_cli():
         "stop", aliases=["shutdown"], help="Stop cleanly an existing guest"
     )
     parser_stop.add_argument("guest", help="Name of the guest")
+    parser_stop.add_argument(
+        "--no-wait", help="Don't block until the guest is down", action="store_false"
+    )
 
     parser_reboot = subparsers.add_parser("reboot", help="Reboot an existing guest")
     parser_reboot.add_argument("guest", help="Name of the guest")
@@ -360,6 +366,9 @@ def main():
             print(f"NOPE: {args.guest} is already stopped")
             sys.exit(3)
         shutdown_guest(args.guest, qemu_conn)
+        # action="store_false" so if it's true, the flag wasn't given
+        if args.no_wait:
+            wait_for_guest_down(args.guest, qemu_conn)
     elif args.verb == "reboot":
         if not does_guest_exist(known_guests, args.guest):
             print(f"NOPE: guest {args.guest} not known")
@@ -369,6 +378,7 @@ def main():
             sys.exit(3)
         # It's a stop + start to ensure libvirt rereads the guest definition
         shutdown_guest(args.guest, qemu_conn)
+        wait_for_guest_down(args.guest, qemu_conn)
         time.sleep(2)
         start_guest(args.guest, qemu_conn)
     elif args.verb == "crash" or args.verb == "destroy":
