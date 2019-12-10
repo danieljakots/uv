@@ -405,7 +405,7 @@ def main():
             )
             if confirmation != "yes":
                 sys.exit(3)
-        undefine_guest(guest)
+        undefine_guest(args.guest)
     elif args.verb == "create":
         template = args.template.split(".")[0]
         if "/" in template:
