@@ -293,7 +293,9 @@ def parse_cli():
         "--vnc", action="store_true", help="Show VNC ports used by the guest"
     )
 
-    parser_delete = subparsers.add_parser("delete", help="Delete an existing guest")
+    parser_delete = subparsers.add_parser(
+        "delete", aliases=["rm"], help="Delete an existing guest"
+    )
     parser_delete.add_argument("guest", help="Name of the guest")
     parser_delete.add_argument(
         "--yes", help="Don't ask for confirmation", action="store_true"
@@ -394,7 +396,7 @@ def main():
                 print("{:30}  ON".format(guest))
             elif not running and not args.on:
                 print("{:30}  OFF".format(guest))
-    elif args.verb == "delete":
+    elif args.verb == "delete" or args.verb == "rm":
         should_be_running = False
         check_guest_exists_runs(qemu_conn, known_guests, args.guest, should_be_running)
         if not args.yes:
