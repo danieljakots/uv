@@ -172,10 +172,7 @@ def inventary(qemu_conn):
 def offline_migration(qemu_conn, ssh_client, guest, logical_volumes_dict):
     # Shutdown the guest if it runs and wait until it's down
     print(f"Moving {guest}")
-    if not is_guest_running(qemu_conn, guest):
-        print("Guest is not running, confirm to continue")
-        input()
-    else:
+    if is_guest_running(qemu_conn, guest):
         print("Guest is running, shutthing it down")
         shutdown_guest(guest, qemu_conn)
         wait_for_guest_down(guest, qemu_conn)
