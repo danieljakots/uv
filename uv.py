@@ -172,7 +172,9 @@ def inventary(qemu_conn):
 def offline_migration(qemu_conn, ssh_client, guest, logical_volumes_dict):
     # Shutdown the guest if it runs and wait until it's down
     print(f"Moving {guest}")
+    guest_was_running = False
     if is_guest_running(qemu_conn, guest):
+        guest_was_running = True
         print("Guest is running, shutthing it down")
         shutdown_guest(guest, qemu_conn)
         wait_for_guest_down(guest, qemu_conn)
@@ -193,8 +195,9 @@ def offline_migration(qemu_conn, ssh_client, guest, logical_volumes_dict):
 
     # It might be too fast otherwise
     time.sleep(1)
-    print(f"Starting {guest} on remote")
-    ssh_client.exec_command(f"virsh start {guest}")
+    if guest_was_running:
+        print(f"Starting {guest} on remote")
+        ssh_client.exec_command(f"virsh start {guest}")
 
     undefine_guest(guest)
 
