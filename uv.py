@@ -252,7 +252,6 @@ def inventary(qemu_conn):
         cpu, ram = list_cpu_ram(qemu_conn, guest)
         guests[guest]["cpu"] = str(cpu)
         guests[guest]["ram"] = str(ram)
-    print(guests)
     return guests
 
 
