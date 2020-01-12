@@ -151,6 +151,21 @@ def list_disks(qemu_conn, guest):
             yield device
 
 
+def list_cpu_ram(qemu_conn, guest):
+    xml = qemu_conn.lookupByName(guest).XMLDesc()
+    cpu = 0
+    for line in xml.split("\n"):
+        if "vcpu placement" in line:
+            cpu = line.split(">")[1].split("<")[0]
+
+    ram = 0
+    for line in xml.split("\n"):
+        if "memory unit" in line:
+            ram = int(int(line.split(">")[1].split("<")[0]) / 1024)
+
+    return cpu, ram
+
+
 def list_vnc_port(qemu_conn, guest):
     xml = qemu_conn.lookupByName(guest).XMLDesc()
     for line in xml.split("\n"):
@@ -161,11 +176,16 @@ def list_vnc_port(qemu_conn, guest):
 def inventary(qemu_conn):
     guests = {}
     for guest in list_guests(qemu_conn):
+        guests[guest] = {}
         disks = {}
         for logical_volume in list_disks(qemu_conn, guest):
             size = check_logical_volume_on_local(logical_volume)
             disks[logical_volume] = size
-        guests[guest] = disks
+        guests[guest]["disks"] = disks
+        cpu, ram = list_cpu_ram(qemu_conn, guest)
+        guests[guest]["cpu"] = str(cpu)
+        guests[guest]["ram"] = str(ram)
+    print(guests)
     return guests
 
 
@@ -347,13 +367,13 @@ def main():
             print(f"NOPE: guest {args.guest} not known")
             sys.exit(3)
         # Check all the lv exist on remote
-        for lv_name, lv_size in known_guests[args.guest].items():
+        for lv_name, lv_size in known_guests[args.guest]["disks"].items():
             print(f"Checking on remote {lv_name} (size {lv_size}B)")
             check_logical_volume_on_remote(ssh_client, lv_name, lv_size)
 
         if args.offline:
             offline_migration(
-                qemu_conn, ssh_client, args.guest, known_guests[args.guest]
+                qemu_conn, ssh_client, args.guest, known_guests[args.guest]["disks"]
             )
         elif args.live:
             live_migration(args.guest)
@@ -410,7 +430,9 @@ def main():
         template = args.template.split(".")[0]
         if "/" in template:
             template = template.split("/")[-1]
-        logical_volume_size = known_guests[template][f"/dev/ubuntu-vg/{template}"]
+        logical_volume_size = known_guests[template]["disks"][
+            f"/dev/ubuntu-vg/{template}"
+        ]
         if check_logical_volume_on_local(f"/dev/ubuntu-vg/{args.guest}"):
             print(f"NOPE: logical volume for {args.guest} already exists")
             sys.exit(3)
