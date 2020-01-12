@@ -22,6 +22,73 @@ DD_BS = 4096
 ZSTD_LEVEL = 6
 
 
+def create_guest_from_template(args, known_guests):
+    template = args.template.split(".")[0]
+    if "/" in template:
+        template = template.split("/")[-1]
+    logical_volume_size = known_guests[template]["disks"][f"/dev/ubuntu-vg/{template}"]
+    if check_logical_volume_on_local(f"/dev/ubuntu-vg/{args.guest}"):
+        print(f"NOPE: logical volume for {args.guest} already exists")
+        sys.exit(3)
+    lvcreate_cmd = [
+        "lvcreate",
+        f"-L{logical_volume_size}B",
+        f"-n{args.guest}",
+        "ubuntu-vg",
+    ]
+    print("Creating new LV")
+    result = subprocess.run(
+        lvcreate_cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
+        encoding="utf-8",
+    )
+    if result.returncode != 0:
+        print(f"{lvcreate_cmd} didn't work")
+        sys.exit(3)
+
+    print(f"Copying data from {template}")
+    lvcopy_cmd = [
+        "dd",
+        f"if=/dev/ubuntu-vg/{template}",
+        f"of=/dev/ubuntu-vg/{args.guest}",
+        f"bs={str(DD_BS)}",
+    ]
+    result = subprocess.run(
+        lvcopy_cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, encoding="utf-8"
+    )
+    if result.returncode != 0:
+        print(f"{lvcopy_cmd} didn't work")
+        sys.exit(3)
+
+    # Check mac address
+    comp = re.compile("^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$")
+    if not comp.fullmatch(args.mac):
+        print("Given mac address is invalid")
+        sys.exit(3)
+    guest_uuid = uuid.uuid4()
+    # size is given in G and libvirt takes K
+    ram = int(args.ram * 1024 * 1024)
+    new_guest = {
+        "name": args.guest,
+        "cpu": args.cpu,
+        "ram": ram,
+        "id": guest_uuid,
+        "vnc": args.vnc,
+        "disk": f"/dev/ubuntu-vg/{args.guest}",
+        "mac": args.mac,
+    }
+    with open(args.template, "r") as f:
+        template = f.read()
+    jinja2_template = jinja2.Template(template)
+    new_guest_definition = jinja2_template.render(new_guest=new_guest)
+    with open(f"/etc/libvirt/qemu/{args.guest}.xml", "w") as f:
+        f.write(new_guest_definition)
+        f.write("\n")
+    print("Definining new guest")
+    os.system(f"virsh define /etc/libvirt/qemu/{args.guest}.xml")
+
+
 def is_guest_running(qemu_conn, guest):
     dom = qemu_conn.lookupByName(guest)
     return dom.isActive()
@@ -427,75 +494,7 @@ def main():
                 sys.exit(3)
         undefine_guest(args.guest)
     elif args.verb == "create":
-        template = args.template.split(".")[0]
-        if "/" in template:
-            template = template.split("/")[-1]
-        logical_volume_size = known_guests[template]["disks"][
-            f"/dev/ubuntu-vg/{template}"
-        ]
-        if check_logical_volume_on_local(f"/dev/ubuntu-vg/{args.guest}"):
-            print(f"NOPE: logical volume for {args.guest} already exists")
-            sys.exit(3)
-        lvcreate_cmd = [
-            "lvcreate",
-            f"-L{logical_volume_size}B",
-            f"-n{args.guest}",
-            "ubuntu-vg",
-        ]
-        print("Creating new LV")
-        result = subprocess.run(
-            lvcreate_cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.DEVNULL,
-            encoding="utf-8",
-        )
-        if result.returncode != 0:
-            print(f"{lvcreate_cmd} didn't work")
-            sys.exit(3)
-
-        print(f"Copying data from {template}")
-        lvcopy_cmd = [
-            "dd",
-            f"if=/dev/ubuntu-vg/{template}",
-            f"of=/dev/ubuntu-vg/{args.guest}",
-            f"bs={str(DD_BS)}",
-        ]
-        result = subprocess.run(
-            lvcopy_cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.DEVNULL,
-            encoding="utf-8",
-        )
-        if result.returncode != 0:
-            print(f"{lvcopy_cmd} didn't work")
-            sys.exit(3)
-
-        # Check mac address
-        comp = re.compile("^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$")
-        if not comp.fullmatch(args.mac):
-            print("Given mac address is invalid")
-            sys.exit(3)
-        guest_uuid = uuid.uuid4()
-        # size is given in G and libvirt takes K
-        ram = int(args.ram * 1024 * 1024)
-        new_guest = {
-            "name": args.guest,
-            "cpu": args.cpu,
-            "ram": ram,
-            "id": guest_uuid,
-            "vnc": args.vnc,
-            "disk": f"/dev/ubuntu-vg/{args.guest}",
-            "mac": args.mac,
-        }
-        with open(args.template, "r") as f:
-            template = f.read()
-        jinja2_template = jinja2.Template(template)
-        new_guest_definition = jinja2_template.render(new_guest=new_guest)
-        with open(f"/etc/libvirt/qemu/{args.guest}.xml", "w") as f:
-            f.write(new_guest_definition)
-            f.write("\n")
-        print("Definining new guest")
-        os.system(f"virsh define /etc/libvirt/qemu/{args.guest}.xml")
+        create_guest_from_template(args, known_guests)
 
 
 if __name__ == "__main__":
