@@ -368,16 +368,7 @@ def parse_cli():
     )
     parser_crash.add_argument("guest", help="Name of the guest")
 
-    parser_list = subparsers.add_parser("list", help="List all existing guests")
-    group = parser_list.add_mutually_exclusive_group()
-    group.add_argument("--on", action="store_true", help="List only guests powered on")
-    group.add_argument(
-        "--off", action="store_true", help="List only guests powered off"
-    )
-
-    group.add_argument(
-        "--vnc", action="store_true", help="Show VNC ports used by the guest"
-    )
+    subparsers.add_parser("list", help="List all existing guests")
 
     parser_delete = subparsers.add_parser(
         "delete", aliases=["rm"], help="Delete an existing guest"
@@ -417,6 +408,10 @@ def check_guest_exists_runs(qemu_conn, known_guests, guest, should_be_running):
     elif not is_guest_running(qemu_conn, guest) and should_be_running:
         print(f"NOPE: {guest} is already stopped")
         sys.exit(3)
+
+
+def print_guests(guest, vnc_port, cpu, ram, status):
+    print("{:15} {:4} {:5} {:5} {}".format(guest, cpu, ram, vnc_port, status))
 
 
 def main():
@@ -473,15 +468,21 @@ def main():
         check_guest_exists_runs(qemu_conn, known_guests, args.guest, should_be_running)
         crash_guest(args.guest, qemu_conn)
     elif args.verb == "list":
+        print_guests("Guest", "VNC", "CPU", "RAM", "STATUS")
         for guest in known_guests.keys():
             running = is_guest_running(qemu_conn, guest)
-            if args.vnc:
-                vnc_port = list_vnc_port(qemu_conn, guest)
-                print("{:30} {}".format(guest, vnc_port))
-            elif running and not args.off:
-                print("{:30}  ON".format(guest))
-            elif not running and not args.on:
-                print("{:30}  OFF".format(guest))
+            vnc_port = list_vnc_port(qemu_conn, guest)
+            if running:
+                status = "ON"
+            else:
+                status = "OFF"
+            print_guests(
+                guest,
+                vnc_port,
+                known_guests[guest]["cpu"],
+                known_guests[guest]["ram"],
+                status,
+            )
     elif args.verb == "delete" or args.verb == "rm":
         should_be_running = False
         check_guest_exists_runs(qemu_conn, known_guests, args.guest, should_be_running)
