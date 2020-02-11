@@ -116,7 +116,7 @@ def check_logical_volume_on_local(logical_volume):
     return size
 
 
-def check_logical_volume_on_remote(
+def make_logical_volume_on_remote(
     ssh_client, logical_volume_name, logical_volume_size
 ):
     remote_cmd = [
@@ -430,7 +430,7 @@ def main():
         # Check all the lv exist on remote
         for lv_name, lv_size in known_guests[args.guest]["disks"].items():
             print(f"Checking on remote {lv_name} (size {lv_size}B)")
-            check_logical_volume_on_remote(ssh_client, lv_name, lv_size)
+            make_logical_volume_on_remote(ssh_client, lv_name, lv_size)
 
         if args.offline:
             offline_migration(
