@@ -410,8 +410,8 @@ def check_guest_exists_runs(qemu_conn, known_guests, guest, should_be_running):
         sys.exit(3)
 
 
-def print_guests(guest, vnc_port, cpu, ram, status):
-    print("{:15} {:4} {:5} {:5} {}".format(guest, cpu, ram, vnc_port, status))
+def print_guests(guest, vnc_port, cpu, ram, status, disks):
+    print("{:15} {:4} {:5} {:5} {:6} {}".format(guest, cpu, ram, vnc_port, status, disks))
 
 
 def main():
@@ -468,7 +468,7 @@ def main():
         check_guest_exists_runs(qemu_conn, known_guests, args.guest, should_be_running)
         crash_guest(args.guest, qemu_conn)
     elif args.verb == "list":
-        print_guests("Guest", "VNC", "CPU", "RAM", "STATUS")
+        print_guests("Guest", "VNC", "CPU", "RAM", "STATUS", "DISKS")
         for guest in known_guests.keys():
             running = is_guest_running(qemu_conn, guest)
             vnc_port = list_vnc_port(qemu_conn, guest)
@@ -476,12 +476,19 @@ def main():
                 status = "ON"
             else:
                 status = "OFF"
+            disks = {}
+            for disk_name, disk_size in known_guests[guest]["disks"].items():
+                # basename(1) equivalent
+                disk_name = disk_name.rpartition("/")[-1]
+                disk_size = f"{int(int(disk_size) / 1024 / 1024 / 1024)}G"
+                disks[disk_name] = disk_size
             print_guests(
                 guest,
                 vnc_port,
                 known_guests[guest]["cpu"],
                 known_guests[guest]["ram"],
                 status,
+                disks,
             )
     elif args.verb == "delete" or args.verb == "rm":
         should_be_running = False
