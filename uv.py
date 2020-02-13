@@ -468,7 +468,7 @@ def main():
         check_guest_exists_runs(qemu_conn, known_guests, args.guest, should_be_running)
         crash_guest(args.guest, qemu_conn)
     elif args.verb == "list":
-        print_guests("Guest", "VNC", "CPU", "RAM", "STATUS", "DISKS")
+        print_guests("GUEST", "VNC", "CPU", "RAM", "STATUS", "DISKS")
         for guest in known_guests.keys():
             running = is_guest_running(qemu_conn, guest)
             vnc_port = list_vnc_port(qemu_conn, guest)
