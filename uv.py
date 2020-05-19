@@ -319,7 +319,7 @@ def parse_cli():
         help="Type of action you want to do", dest="verb", required=True
     )
 
-    parser_create = subparsers.add_parser("create", help="Create a new guest")
+    parser_create = subparsers.add_parser("create", help="Create a new guest from a template")
     parser_create.add_argument("guest", help="Name of the guest")
     parser_create.add_argument(
         "--template",
