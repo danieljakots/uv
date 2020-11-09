@@ -129,9 +129,7 @@ def check_logical_volume_on_local(logical_volume):
     return size
 
 
-def make_logical_volume_on_remote(
-    ssh_client, logical_volume_name, logical_volume_size
-):
+def make_logical_volume_on_remote(ssh_client, logical_volume_name, logical_volume_size):
     remote_cmd = [
         "ssh",
         "otherkvm",
@@ -431,7 +429,9 @@ def check_guest_exists_runs(qemu_conn, known_guests, guest, should_be_running):
 
 
 def print_guests(guest, vnc_port, cpu, ram, status, disks):
-    print("{:15} {:4} {:5} {:5} {:6} {}".format(guest, cpu, ram, vnc_port, status, disks))
+    print(
+        "{:15} {:4} {:5} {:5} {:6} {}".format(guest, cpu, ram, vnc_port, status, disks)
+    )
 
 
 def main():
