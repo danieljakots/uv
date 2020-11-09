@@ -65,8 +65,11 @@ def create_new_lv(name, logical_volume_size):
         sys.exit(3)
 
 
-def create_guest_from_template(args, known_guests):
-    copy_disk_from_template(args.template, known_guests, args.guest)
+def create_guest_from_template(args, known_guests, disk_size):
+    if disk_size == 0:
+        copy_disk_from_template(args.template, known_guests, args.guest)
+    else:
+        create_new_lv(args.guest, disk_size)
 
     # Check mac address
     comp = re.compile("^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$")
@@ -326,7 +329,7 @@ def parse_cli():
         help="Type of action you want to do", dest="verb", required=True
     )
 
-    parser_create = subparsers.add_parser("create", help="Create a new guest from a template")
+    parser_create = subparsers.add_parser("create", help="Create a new guest")
     parser_create.add_argument("guest", help="Name of the guest")
     parser_create.add_argument(
         "--template",
@@ -343,6 +346,13 @@ def parse_cli():
     parser_create.add_argument("--mac", help="Which mac address", required=True)
     parser_create.add_argument(
         "--vnc", help="Which tcp port for VNC", type=int, required=True
+    )
+    group_create = parser_create.add_mutually_exclusive_group(required=True)
+    group_create.add_argument("--disk-size", help="Size of the disk", type=int)
+    group_create.add_argument(
+        "--copy-disk",
+        action="store_true",
+        help="Add this option if you want to copy the disk from a template",
     )
 
     parser_start = subparsers.add_parser("start", help="Start an existing guest")
@@ -508,7 +518,14 @@ def main():
                 sys.exit(3)
         undefine_guest(args.guest)
     elif args.verb == "create":
-        create_guest_from_template(args, known_guests)
+        if args.copy_disk:
+            disk = 0
+        else:
+            disk = args.disk_size * 1024 * 1024 * 1024
+            if disk == 0:
+                print("NOPE: 0 is not a valid disk size")
+                sys.exit(3)
+        create_guest_from_template(args, known_guests, disk)
 
 
 if __name__ == "__main__":
