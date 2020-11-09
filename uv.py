@@ -78,6 +78,9 @@ def create_guest_from_template(args, known_guests, disk_size):
         sys.exit(3)
     guest_uuid = uuid.uuid4()
     # size is given in G and libvirt takes K
+    if args.ram > 8:
+        print("NOPE: ram is too big. Unit mismatch?")
+        sys.exit(3)
     ram = int(args.ram * 1024 * 1024)
     new_guest = {
         "name": args.guest,
