@@ -515,9 +515,9 @@ def main():
         check_guest_exists_runs(qemu_conn, known_guests, args.guest, should_be_running)
         if not args.yes:
             confirmation = input(
-                f"Confirm you want to delete {args.guest} ('yes' to confirm)?\n"
+                f"Confirm you want to delete {args.guest} ('{args.guest}' to confirm)?\n"
             )
-            if confirmation != "yes":
+            if confirmation != args.guest:
                 sys.exit(3)
         undefine_guest(args.guest)
     elif args.verb == "create":
