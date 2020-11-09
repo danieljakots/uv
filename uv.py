@@ -343,9 +343,9 @@ def parse_cli():
 
     parser_move = subparsers.add_parser("move", help="Move an existing guest")
     parser_move.add_argument("guest", help="Name of the guest")
-    group = parser_move.add_mutually_exclusive_group(required=True)
-    group.add_argument("--live", action="store_true")
-    group.add_argument("--offline", action="store_true")
+    group_move = parser_move.add_mutually_exclusive_group(required=True)
+    group_move.add_argument("--live", action="store_true")
+    group_move.add_argument("--offline", action="store_true")
     parser_move.add_argument(
         "--disable-bell",
         action="store_true",
