@@ -22,18 +22,35 @@ DD_BS = 4096
 ZSTD_LEVEL = 6
 
 
-def create_guest_from_template(args, known_guests):
-    template = args.template.split(".")[0]
+def copy_disk_from_template(template, known_guests, guest):
+    logical_volume_size = known_guests[template]["disks"][f"/dev/ubuntu-vg/{template}"]
+    if check_logical_volume_on_local(f"/dev/ubuntu-vg/{guest}"):
+        print(f"NOPE: logical volume for {guest} already exists")
+        sys.exit(3)
+    template = template.split(".")[0]
     if "/" in template:
         template = template.split("/")[-1]
-    logical_volume_size = known_guests[template]["disks"][f"/dev/ubuntu-vg/{template}"]
-    if check_logical_volume_on_local(f"/dev/ubuntu-vg/{args.guest}"):
-        print(f"NOPE: logical volume for {args.guest} already exists")
+    create_new_lv(guest, logical_volume_size)
+    print(f"Copying data from {template}")
+    lvcopy_cmd = [
+        "dd",
+        f"if=/dev/ubuntu-vg/{template}",
+        f"of=/dev/ubuntu-vg/{guest}",
+        f"bs={str(DD_BS)}",
+    ]
+    result = subprocess.run(
+        lvcopy_cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, encoding="utf-8"
+    )
+    if result.returncode != 0:
+        print(f"{lvcopy_cmd} didn't work")
         sys.exit(3)
+
+
+def create_new_lv(name, logical_volume_size):
     lvcreate_cmd = [
         "lvcreate",
         f"-L{logical_volume_size}B",
-        f"-n{args.guest}",
+        f"-n{name}",
         "ubuntu-vg",
     ]
     print("Creating new LV")
@@ -47,19 +64,9 @@ def create_guest_from_template(args, known_guests):
         print(f"{lvcreate_cmd} didn't work")
         sys.exit(3)
 
-    print(f"Copying data from {template}")
-    lvcopy_cmd = [
-        "dd",
-        f"if=/dev/ubuntu-vg/{template}",
-        f"of=/dev/ubuntu-vg/{args.guest}",
-        f"bs={str(DD_BS)}",
-    ]
-    result = subprocess.run(
-        lvcopy_cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, encoding="utf-8"
-    )
-    if result.returncode != 0:
-        print(f"{lvcopy_cmd} didn't work")
-        sys.exit(3)
+
+def create_guest_from_template(args, known_guests):
+    copy_disk_from_template(args.template, known_guests, args.guest)
 
     # Check mac address
     comp = re.compile("^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$")
