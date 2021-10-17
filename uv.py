@@ -5,99 +5,14 @@
 # Licensed under the MIT license. See the LICENSE file.
 
 import argparse
-# XXX remove os with subprocess.run
-import os
-import re
 import subprocess
 import sys
 import time
-import uuid
 
-import jinja2
 import libvirt
 
 DD_BS = 4096
 ZSTD_LEVEL = 6
-
-
-def copy_disk_from_template(template, known_guests, guest):
-    logical_volume_size = known_guests[template]["disks"][f"/dev/ubuntu-vg/{template}"]
-    if check_logical_volume_on_local(f"/dev/ubuntu-vg/{guest}"):
-        print(f"NOPE: logical volume for {guest} already exists")
-        sys.exit(3)
-    template = template.split(".")[0]
-    if "/" in template:
-        template = template.split("/")[-1]
-    create_new_lv(guest, logical_volume_size)
-    print(f"Copying data from {template}")
-    lvcopy_cmd = [
-        "dd",
-        f"if=/dev/ubuntu-vg/{template}",
-        f"of=/dev/ubuntu-vg/{guest}",
-        f"bs={str(DD_BS)}",
-    ]
-    result = subprocess.run(
-        lvcopy_cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, encoding="utf-8"
-    )
-    if result.returncode != 0:
-        print(f"{lvcopy_cmd} didn't work")
-        sys.exit(3)
-
-
-def create_new_lv(name, logical_volume_size):
-    lvcreate_cmd = [
-        "lvcreate",
-        f"-L{logical_volume_size}B",
-        f"-n{name}",
-        "ubuntu-vg",
-    ]
-    print("Creating new LV")
-    result = subprocess.run(
-        lvcreate_cmd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.DEVNULL,
-        encoding="utf-8",
-    )
-    if result.returncode != 0:
-        print(f"{lvcreate_cmd} didn't work")
-        sys.exit(3)
-
-
-def create_guest_from_template(args, known_guests, disk_size):
-    if disk_size == 0:
-        copy_disk_from_template(args.template, known_guests, args.guest)
-    else:
-        create_new_lv(args.guest, disk_size)
-
-    # Check mac address
-    comp = re.compile("^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$")
-    if not comp.fullmatch(args.mac):
-        print("Given mac address is invalid")
-        sys.exit(3)
-    guest_uuid = uuid.uuid4()
-    # size is given in G and libvirt takes K
-    if args.ram > 8:
-        print("NOPE: ram is too big. Unit mismatch?")
-        sys.exit(3)
-    ram = int(args.ram * 1024 * 1024)
-    new_guest = {
-        "name": args.guest,
-        "cpu": args.cpu,
-        "ram": ram,
-        "id": guest_uuid,
-        "vnc": args.vnc,
-        "disk": f"/dev/ubuntu-vg/{args.guest}",
-        "mac": args.mac,
-    }
-    with open(args.template, "r") as f:
-        template = f.read()
-    jinja2_template = jinja2.Template(template)
-    new_guest_definition = jinja2_template.render(new_guest=new_guest)
-    with open(f"/etc/libvirt/qemu/{args.guest}.xml", "w") as f:
-        f.write(new_guest_definition)
-        f.write("\n")
-    print("Definining new guest")
-    os.system(f"virsh define /etc/libvirt/qemu/{args.guest}.xml")
 
 
 def is_guest_running(qemu_conn, guest):
@@ -208,32 +123,6 @@ def parse_cli():
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(
         help="Type of action you want to do", dest="verb", required=True
-    )
-
-    parser_create = subparsers.add_parser("create", help="Create a new guest")
-    parser_create.add_argument("guest", help="Name of the guest")
-    parser_create.add_argument(
-        "--template",
-        help="Which template to use for the definition",
-        default=2,
-        required=True,
-    )
-    parser_create.add_argument(
-        "--cpu", help="How many CPU", type=int, default=2, required=True
-    )
-    parser_create.add_argument(
-        "--ram", help="How much RAM (in G)", type=float, default=2, required=True
-    )
-    parser_create.add_argument("--mac", help="Which mac address", required=True)
-    parser_create.add_argument(
-        "--vnc", help="Which tcp port for VNC", type=int, required=True
-    )
-    group_create = parser_create.add_mutually_exclusive_group(required=True)
-    group_create.add_argument("--disk-size", help="Size of the disk", type=int)
-    group_create.add_argument(
-        "--copy-disk",
-        action="store_true",
-        help="Add this option if you want to copy the disk from a template",
     )
 
     parser_start = subparsers.add_parser("start", help="Start an existing guest")
@@ -352,15 +241,6 @@ def main():
             if confirmation != args.guest:
                 sys.exit(3)
         undefine_guest(args.guest)
-    elif args.verb == "create":
-        if args.copy_disk:
-            disk = 0
-        else:
-            disk = args.disk_size * 1024 * 1024 * 1024
-            if disk == 0:
-                print("NOPE: 0 is not a valid disk size")
-                sys.exit(3)
-        create_guest_from_template(args, known_guests, disk)
 
 
 if __name__ == "__main__":
