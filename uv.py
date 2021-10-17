@@ -20,25 +20,28 @@ def is_guest_running(qemu_conn, guest):
     return dom.isActive()
 
 
-def check_logical_volume_on_local(logical_volume):
-    local_cmd = [
-        "lvs",
-        logical_volume,
+def get_zvol_size(zvol):
+    # remove /dev/zvol/
+    zvol = zvol[10:]
+    # zfs get -o value -Hp volsize zpool0/zvol/docker5
+    cmd = [
+        "zfs",
+        "get",
         "-o",
-        "LV_SIZE",
-        "--noheadings",
-        "--units",
-        "B",
-        "--nosuffix",
+        "value",
+        "-Hp",
+        "volsize",
+        zvol
     ]
-    local_result = subprocess.run(
-        local_cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, encoding="utf-8"
+
+    result = subprocess.run(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, encoding="utf-8"
     )
-    if local_result.returncode != 0:
+    if result.returncode != 0:
         return 0
 
     # in Bytes
-    size = local_result.stdout.strip()
+    size = result.stdout.strip()
     return size
 
 
@@ -103,9 +106,9 @@ def inventary(qemu_conn):
     for guest in list_guests(qemu_conn):
         guests[guest] = {}
         disks = {}
-        for logical_volume in list_disks(qemu_conn, guest):
-            size = check_logical_volume_on_local(logical_volume)
-            disks[logical_volume] = size
+        for zvol in list_disks(qemu_conn, guest):
+            size = get_zvol_size(zvol)
+            disks[zvol] = size
         guests[guest]["disks"] = disks
         cpu, ram = list_cpu_ram(qemu_conn, guest)
         guests[guest]["cpu"] = str(cpu)
